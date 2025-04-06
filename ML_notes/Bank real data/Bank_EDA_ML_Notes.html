@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bank Loan and Fraud Detection - EDA & ML Notes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+        h1, h2, h3 { color: #333; }
+        pre { background-color: #eee; padding: 10px; border-radius: 5px; }
+        code { color: #d63384; }
+        .section { background-color: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+<h1>📚 Bank Loan and Fraud Detection - EDA & ML Notes</h1>
+
+<div class="section">
+    <h2>📊 Part 1: EDA (Exploratory Data Analysis) Notes</h2>
+
+    <h3>1. Handling Missing Values</h3>
+    <p><strong>Challenge:</strong> Missing values in numerical and categorical columns.</p>
+    <p><strong>Solution:</strong></p>
+    <pre><code>from sklearn.impute import SimpleImputer
+
+# Impute numerical columns with mean
+num_imputer = SimpleImputer(strategy='mean')
+df[num_cols] = num_imputer.fit_transform(df[num_cols])
+
+# Impute CreditHistory with mode
+df['CreditHistory'].fillna(df['CreditHistory'].mode()[0], inplace=True)</code></pre>
+
+    <h3>2. Outlier Detection and Treatment</h3>
+    <p><strong>Challenge:</strong> Outliers may skew predictions.</p>
+    <p><strong>Solution:</strong></p>
+    <pre><code>from scipy import stats
+
+z_scores = np.abs(stats.zscore(df[num_cols]))
+df_no_outliers = df[(z_scores < 3).all(axis=1)]</code></pre>
+
+    <h3>3. Correlation and Feature Selection</h3>
+    <p><strong>Challenge:</strong> Identifying the most relevant features.</p>
+    <pre><code>import seaborn as sns
+import matplotlib.pyplot as plt
+
+corr_matrix = df_no_outliers.corr()
+plt.figure(figsize=(12, 8))
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title("Correlation Matrix")
+plt.show()</code></pre>
+
+    <h3>4. One-Hot Encoding and Scaling</h3>
+    <p><strong>Challenge:</strong> Encoding and scaling numerical and categorical variables.</p>
+    <pre><code>from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+# One-Hot Encoding
+df_encoded = pd.get_dummies(df_no_outliers, columns=['PropertyArea', 'MaritalStatus'], drop_first=True)
+
+# Standardization
+scaler = StandardScaler()
+num_scaled = scaler.fit_transform(df_encoded[num_cols])
+df_encoded[num_cols] = num_scaled</code></pre>
+</div>
+
+<div class="section">
+    <h2>🤖 Part 2: Machine Learning Notes</h2>
+
+    <h3>1. Logistic Regression and Random Forest for Loan Approval</h3>
+    <p><strong>Challenge:</strong> Predict loan approval.</p>
+    <pre><code>from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+
+logistic_model = LogisticRegression(max_iter=1000)
+logistic_model.fit(X_train_l, y_train_l)
+
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model.fit(X_train_l, y_train_l)</code></pre>
+
+    <h3>2. Handling Class Imbalance with SMOTE</h3>
+    <p><strong>Challenge:</strong> Imbalanced data in LoanStatus and FraudFlag.</p>
+    <pre><code>from imblearn.over_sampling import SMOTE
+
+smote = SMOTE(random_state=42)
+X_resampled, y_resampled = smote.fit_resample(X_scaled, y_loan_status)</code></pre>
+
+    <h3>3. Fraud Detection with Random Forest</h3>
+    <p><strong>Challenge:</strong> Detect fraudulent transactions.</p>
+    <pre><code>rf_fraud = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_fraud.fit(X_train_f, y_train_f)</code></pre>
+
+    <h3>4. Cross-Validation and Regularization</h3>
+    <p><strong>Challenge:</strong> Prevent overfitting and validate models.</p>
+    <pre><code>from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.linear_model import RidgeClassifier
+
+ridge_model = RidgeClassifier(alpha=1.0)
+cv_ridge_scores = cross_val_score(ridge_model, X_scaled, y_loan_status, cv=5, scoring='accuracy')
+print("Ridge CV Accuracy:", np.mean(cv_ridge_scores))</code></pre>
+</div>
+
+</body>
+</html>
